@@ -1,3 +1,5 @@
+const { warn, debug } = require('console');
+
 module.exports = (config) => {
 
 
@@ -25,6 +27,8 @@ module.exports = (config) => {
 	const path = require('path');
 	const fs = require('fs');
 	const winston = require('winston');
+	const { format } = winston;
+	const { colorize, timestamp, json, printf, combine } = format;
 
 	// console.log(winston)
 
@@ -34,17 +38,31 @@ module.exports = (config) => {
 	let logDirectory = path.resolve(process.cwd(), 'logs');
 	fs.mkdirSync(logDirectory, { recursive: true });
 
+	// add global logging colors
+	winston.addColors({
+		error: 'red',
+		warn: 'yellow',
+		info: 'green',
+		debug: 'cyan'
+	});
 
-	// transports.push( new winston.transports.File())
-
-
-
-
-
-
+	/**
+	 * Note when using colorize, timestamp, json in order, 
+	 * json creates/appends ansi color codes of form {"level":"\u001b[36mdebug\u001b[39m","message":"\u001b[36mThe query to generate new user is : query\u001b[39m","timestamp":"2026-09-24 22:09:10:910"}
+	 * 
+	 * so use printf when coloring
+	 */
+	// adding global scoped formatter
+	let consoleFormat = combine(
+		colorize({ all: true }),
+		timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
+		// json(),
+		printf(({ timestamp, level, message }) => `${timestamp} [${level}]: ${message}`)
+	)
 
 	const logger = winston.createLogger({
 		level: process.env.log_level || 'debug',
+		format: consoleFormat,
 		transports: [
 			new winston.transports.Console()
 		]
