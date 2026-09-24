@@ -1,5 +1,24 @@
 {
-  "dependencies": {
-    "winston": "^3.19.0"
-  }
+	"name": "loggerapp",
+	"version": "1.0.0",
+	"description": "",
+	"homepage": "https://github.com/Jigarjeet1217/loggerApp#readme",
+	"bugs": {
+		"url": "https://github.com/Jigarjeet1217/loggerApp/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Jigarjeet1217/loggerApp.git"
+	},
+	"license": "ISC",
+	"author": "",
+	"type": "commonjs",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"dependencies": {
+		"winston": "^3.19.0"
+	},
+	"devDependencies": {}
 }
