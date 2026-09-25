@@ -2,11 +2,24 @@ const { warn, debug } = require('console');
 
 module.exports = (config) => {
 
+	const defaultConfig = {
+		logDirectory: 'logs',
+		logColors: {
+			error: 'red',
+			warn: 'yellow',
+			info: 'green',
+			debug: 'cyan'
+		},
+		log_level: 'debug',
+		printToConsole: true,
+		logFileDateFormat: 'YYYY-MM-DD HH:mm:ss:ms'
+	}
+
+	config = config || defaultConfig;
 
 	/**
 	 * Winston separates log generation from log destination.
 	 * Destination sources can be Console, log folders, elastic stack or Loki or Grafana
-	 * 
 	 * 
 	 * Concepts 
 	 * 
@@ -30,21 +43,14 @@ module.exports = (config) => {
 	const { format } = winston;
 	const { colorize, timestamp, json, printf, combine } = format;
 
-	// console.log(winston)
-
 	let transports = [];
 
 	// create logger transport 1 - logs folder
-	let logDirectory = path.resolve(process.cwd(), 'logs');
+	let logDirectory = path.resolve(process.cwd(), config.logDirectory);
 	fs.mkdirSync(logDirectory, { recursive: true });
 
 	// add global logging colors
-	winston.addColors({
-		error: 'red',
-		warn: 'yellow',
-		info: 'green',
-		debug: 'cyan'
-	});
+	winston.addColors(config.logColors);
 
 	/**
 	 * Note when using colorize, timestamp, json in order, 
@@ -55,17 +61,21 @@ module.exports = (config) => {
 	// adding global scoped formatter
 	let consoleFormat = combine(
 		colorize({ all: true }),
-		timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
+		timestamp({ format: config.logFileDateFormat }),
 		// json(),
 		printf(({ timestamp, level, message }) => `${timestamp} [${level}]: ${message}`)
 	)
 
+	transports.push(new winston.transports.File({ filename: `${config.logDirectory}/App.log` }))
+
+	if (config.printToConsole) {
+		transports.push(new winston.transports.Console())
+	}
+
 	const logger = winston.createLogger({
-		level: process.env.log_level || 'debug',
+		level: process.env.log_level || config.log_level || 'debug',
 		format: consoleFormat,
-		transports: [
-			new winston.transports.Console()
-		]
+		transports
 	});
 
 	return logger;
