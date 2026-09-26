@@ -74,12 +74,16 @@ module.exports = (config) => {
 		printf(({ timestamp, level, message }) => `${timestamp} [${level}]: ${message}`)
 	)
 
-	let fileFormat = combine(
-		timestamp({ format: config.logFileDateFormat }),
-		config.logFormatType === 'json' ? json() : printf(({ timestamp, level, message }) => `${timestamp} [${level}]: ${message}`)
-	)
-
 	let logLevels = ['error', 'warn', 'info', 'debug'];
+
+	const onlyLevel = (level) =>
+		format((info) => {
+			if (info.level === level) {
+				return info;
+			}
+
+			return false;
+		})();
 
 	/**
 	 * Note: winston uses paramaters maxsize and maxFiles to track file rotation when maxsize is reached
@@ -91,9 +95,13 @@ module.exports = (config) => {
 	logLevels.forEach(lvl => {
 		transports.push(new winston.transports.File({
 			filename: `${config.logDirectory}/App-${lvl}.log`,
-			level: 'info',
+			// level: 'info',
 			...config.logFileRotation,
-			format: fileFormat
+			format: combine(
+				onlyLevel(lvl),
+				timestamp({ format: config.logFileDateFormat }),
+				config.logFormatType === 'json' ? json() : printf(({ timestamp, level, message }) => `${timestamp} [${level}]: ${message}`)
+			)
 		}))
 	})
 
