@@ -11,6 +11,7 @@ module.exports = (config) => {
 			debug: 'cyan'
 		},
 		log_level: 'debug',
+		logFormatType: 'txt',
 		printToConsole: true,
 		logFileDateFormat: 'YYYY-MM-DD HH:mm:ss:ms'
 	}
@@ -66,15 +67,22 @@ module.exports = (config) => {
 		printf(({ timestamp, level, message }) => `${timestamp} [${level}]: ${message}`)
 	)
 
-	transports.push(new winston.transports.File({ filename: `${config.logDirectory}/App.log` }))
+	let fileFormat = combine(
+		timestamp({ format: config.logFileDateFormat }),
+		config.logFormatType === 'json' ? json() : printf(({ timestamp, level, message }) => `${timestamp} [${level}]: ${message}`)
+	)
+
+	transports.push(new winston.transports.File({ filename: `${config.logDirectory}/App.log`, level: 'info', format: fileFormat }))
+	transports.push(new winston.transports.File({ filename: `${config.logDirectory}/Error.log`, level: 'error', format: fileFormat }))
+	transports.push(new winston.transports.File({ filename: `${config.logDirectory}/Warn.log`, level: 'warn', format: fileFormat }))
+	transports.push(new winston.transports.File({ filename: `${config.logDirectory}/Debug.log`, level: 'debug', format: fileFormat }))
 
 	if (config.printToConsole) {
-		transports.push(new winston.transports.Console())
+		transports.push(new winston.transports.Console({ format: consoleFormat, }))
 	}
 
 	const logger = winston.createLogger({
 		level: process.env.log_level || config.log_level || 'debug',
-		format: consoleFormat,
 		transports
 	});
 
