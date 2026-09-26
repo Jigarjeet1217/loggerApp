@@ -1,5 +1,3 @@
-const { warn, debug } = require('console');
-
 module.exports = (config) => {
 
 	const defaultConfig = {
@@ -11,8 +9,15 @@ module.exports = (config) => {
 			debug: 'cyan'
 		},
 		logFileRotation: {
-			maxFiles: 10,  // files log files to create
-			maxsize: 10 * 1024 * 1024 // 10MB it should be a number not string
+			// for winston package
+
+			// maxFiles: 10,  // files log files to create
+			// maxsize: 10 * 1024 * 1024 // 10MB it should be a number not string
+
+			// for daily rotate package
+
+			maxFiles: '5d', // how long to retain log files
+			maxSize: '10mb' // max size of each file
 		},
 		log_level: 'debug',
 		logFormatType: 'txt',
@@ -49,6 +54,7 @@ module.exports = (config) => {
 	const fs = require('fs');
 	const winston = require('winston');
 	const { format } = winston;
+	const DailyRotateFile = require('winston-daily-rotate-file');
 	const { colorize, timestamp, json, printf, combine } = format;
 
 	let transports = [];
@@ -93,17 +99,33 @@ module.exports = (config) => {
 	 * 
 	 * This is file rotation concept
 	 */
+	// logLevels.forEach(lvl => {
+	// 	transports.push(new winston.transports.File({
+	// 		filename: `${config.logDirectory}/App-${lvl}.log`,
+	// 		// level: 'info',
+	// 		...config.logFileRotation,
+	// 		format: combine(
+	// 			onlyLevel(lvl),
+	// 			timestamp({ format: config.logFileDateFormat }),
+	// 			config.logFormatType === 'json' ? json() : printf(({ timestamp, level, message }) => `${timestamp} [${level}]: ${message}`)
+	// 		)
+	// 	}))
+	// })
+
+	const fileFormat = combine(
+		timestamp({ format: config.logFileDateFormat }),
+		config.logFormatType === 'json' ? json() : printf(({ timestamp, level, message }) => `${timestamp} [${level.toUpperCase()}]: ${message}`)
+	)
+
 	logLevels.forEach(lvl => {
-		transports.push(new winston.transports.File({
-			filename: `${config.logDirectory}/App-${lvl}.log`,
-			// level: 'info',
-			...config.logFileRotation,
-			format: combine(
-				onlyLevel(lvl),
-				timestamp({ format: config.logFileDateFormat }),
-				config.logFormatType === 'json' ? json() : printf(({ timestamp, level, message }) => `${timestamp} [${level}]: ${message}`)
-			)
-		}))
+		transports.push(
+			new DailyRotateFile({
+				filename: `${config.logDirectory}/App-${lvl}-%DATE%.log`,
+				datePattern: 'DD-MM-YYYY',
+				...config.logFileRotation,
+				format: fileFormat,
+				level: lvl
+			}))
 	})
 
 	if (config.printToConsole) {

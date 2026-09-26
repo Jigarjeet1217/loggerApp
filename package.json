@@ -18,7 +18,8 @@
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"dependencies": {
-		"winston": "^3.19.0"
+		"winston": "^3.19.0",
+		"winston-daily-rotate-file": "^5.0.0"
 	},
 	"devDependencies": {
 		"nodemon": "^3.1.14"

@@ -2,7 +2,7 @@ console.log("Index Page")
 
 global.logger = require('./utils/logger')();
 
-for (let i = 0; i <= 1000; i++) {
+for (let i = 0; i <= 10000; i++) {
 	logger.error('Error')
 	logger.warn('Someinfo on warning');
 	logger.info('Added new client', "This is the meta data fields for client")
