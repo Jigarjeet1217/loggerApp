@@ -87,7 +87,8 @@ module.exports = (config) => {
 
 	/**
 	 * Note: winston uses paramaters maxsize and maxFiles to track file rotation when maxsize is reached
-	 * maxFiles - It keeps only limited <maxFiles> count files in memory.
+	 * maxFiles - Maximum number of rotated log files to retain
+	 * maxsize - Maximum size of a log file in bytes before rotation.s
 	 * eg. if  current file rotation counter is App-debug20 it means it will keep only files from counter 16-20 in memory
 	 * 
 	 * This is file rotation concept
