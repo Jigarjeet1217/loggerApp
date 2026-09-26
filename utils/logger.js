@@ -10,13 +10,20 @@ module.exports = (config) => {
 			info: 'green',
 			debug: 'cyan'
 		},
+		logFileRotation: {
+			maxFiles: 10,  // files log files to create
+			maxsize: 10 * 1024 * 1024 // 10MB it should be a number not string
+		},
 		log_level: 'debug',
 		logFormatType: 'txt',
 		printToConsole: true,
 		logFileDateFormat: 'YYYY-MM-DD HH:mm:ss:ms'
 	}
 
-	config = config || defaultConfig;
+	config = {
+		...defaultConfig,
+		...config || {}
+	};
 
 	/**
 	 * Winston separates log generation from log destination.
@@ -72,10 +79,23 @@ module.exports = (config) => {
 		config.logFormatType === 'json' ? json() : printf(({ timestamp, level, message }) => `${timestamp} [${level}]: ${message}`)
 	)
 
-	transports.push(new winston.transports.File({ filename: `${config.logDirectory}/App.log`, level: 'info', format: fileFormat }))
-	transports.push(new winston.transports.File({ filename: `${config.logDirectory}/Error.log`, level: 'error', format: fileFormat }))
-	transports.push(new winston.transports.File({ filename: `${config.logDirectory}/Warn.log`, level: 'warn', format: fileFormat }))
-	transports.push(new winston.transports.File({ filename: `${config.logDirectory}/Debug.log`, level: 'debug', format: fileFormat }))
+	let logLevels = ['error', 'warn', 'info', 'debug'];
+
+	/**
+	 * Note: winston uses paramaters maxsize and maxFiles to track file rotation when maxsize is reached
+	 * maxFiles - It keeps only limited <maxFiles> count files in memory.
+	 * eg. if  current file rotation counter is App-debug20 it means it will keep only files from counter 16-20 in memory
+	 * 
+	 * This is file rotation concept
+	 */
+	logLevels.forEach(lvl => {
+		transports.push(new winston.transports.File({
+			filename: `${config.logDirectory}/App-${lvl}.log`,
+			level: 'info',
+			...config.logFileRotation,
+			format: fileFormat
+		}))
+	})
 
 	if (config.printToConsole) {
 		transports.push(new winston.transports.Console({ format: consoleFormat, }))
