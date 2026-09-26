@@ -17,7 +17,7 @@ module.exports = (config) => {
 			// for daily rotate package
 
 			maxFiles: '5d', // how long to retain log files
-			maxSize: '10mb' // max size of each file
+			maxSize: '10m' // 10MB max size of each file
 		},
 		log_level: 'debug',
 		logFormatType: 'txt',
@@ -137,5 +137,12 @@ module.exports = (config) => {
 		transports
 	});
 
-	return logger;
+	// changing default logger paramters
+	return {
+		...logger,
+		info: (msg, context) => logger.info(`${msg} ${context}`),
+		warn: (msg, context) => logger.warn(`${msg} ${context}`),
+		debug: (msg, context) => logger.debug(`${msg} ${context}`),
+		error: (msg, error) => logger.error(`${msg} ${error?.stack ?? error?.message ?? error ?? null}`)
+	};
 }
